@@ -131,11 +131,11 @@ $(ALPINE_CHROOT): vendor/alpine-chroot-install vendor/linux-image-$(KERNEL_VERSI
 		done
 
 		for service in modules sysctl hostname bootmisc swclock syslog swap; do
-			rc-update add $service boot
+			rc-update add \$$service boot
 		done
 
 		for service in dbus sshd chronyd local avahi-daemon wpa_supplicant networking; do
-			rc-update add $service default
+			rc-update add \$$service default
 		done
 
 		for service in mount-ro killprocs savecache; do
