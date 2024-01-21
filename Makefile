@@ -3,7 +3,7 @@
 ARCH 					:= armhf
 ALPINE_CHROOT := /alpine
 ALPINE_CHROOT_INSTALL_VERSION := master
-ALPINE_BRANCH := edge
+ALPINE_BRANCH := latest-stable
 ALPINE_MIRROR := http://dl-cdn.alpinelinux.org/alpine
 
 KERNEL_VERSION 			:= 4.4.13-ntc-mlc
@@ -13,9 +13,9 @@ CHIP_APT_REPO 			:= http://chip.jfpossibilities.com/chip/debian/repo
 
 SYSTEM_USER 						:= chip
 SYSTEM_HOSTNAME 				:= chip
-SYSTEM_KEYBOARD_LAYOUT 	:= es
-SYSTEM_KEYBOARD_VARIANT := es
-SYSTEM_TIMEZONE 				:= Europe/Madrid
+SYSTEM_KEYBOARD_LAYOUT 	:= us
+SYSTEM_KEYBOARD_VARIANT := us
+SYSTEM_TIMEZONE 				:= Europe/Istanbul
 
 NAND_MAXLEB_COUNT 		:= 4096
 NAND_PAGE_SIZE 				:= 16384
@@ -115,7 +115,7 @@ $(ALPINE_CHROOT): vendor/alpine-chroot-install vendor/linux-image-$(KERNEL_VERSI
 	$(ALPINE_CHROOT)/enter-chroot -u root <<-CHROOT
 		set -x
 
-		apk add sudo ca-certificates wpa_supplicant wireless-tools wireless-regdb iw kbd-bkeymaps chrony tzdata openssh dbus avahi
+		apk add alpine-conf ca-certificates wpa_supplicant wireless-tools wireless-regdb iw kbd-bkeymaps chrony tzdata openssh dbus avahi doas
 
 		setup-hostname $(SYSTEM_HOSTNAME)
 		echo "127.0.0.1    $(SYSTEM_HOSTNAME) $(SYSTEM_HOSTNAME).localdomain" > /etc/hosts
@@ -142,25 +142,25 @@ $(ALPINE_CHROOT): vendor/alpine-chroot-install vendor/linux-image-$(KERNEL_VERSI
 			rc-update add \$$service shutdown
 		done
 
-		# more stuff
-		apk add nano htop curl wget bash bash-completion
-		sed -i 's/\/bin\/ash/\/bin\/bash/g' /etc/passwd
-
 		for GRP in spi i2c gpio; do
 			addgroup --system \$$GRP
 		done
 
-		adduser -s /bin/bash -D $(SYSTEM_USER)
+		# Doas configuration
+		echo 'permit nopass :wheel' >> /etc/doas.conf
+
+		# Add system user
+		adduser -D $(SYSTEM_USER)
 
 		for GRP in adm dialout cdrom audio users video games input gpio spi i2c netdev; do
 		  adduser $(SYSTEM_USER) \$$GRP
 		done
 
+		# add password to SYSTEM_USER
 		echo "$(SYSTEM_USER):$(SYSTEM_USER)" | /usr/sbin/chpasswd
-		echo "$(SYSTEM_USER) ALL=NOPASSWD: ALL" >> /etc/sudoers
 
-		# Allow root login with no password.
-		passwd root -d
+		# add password to root
+	 	passwd root -d root
 
 		# Allow root login from serial.
 		echo ttyS0 >> /etc/securetty
