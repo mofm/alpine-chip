@@ -1,7 +1,8 @@
+name: Manual Trigger Workflow
+
+# Configure Manual Trigger
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   build:
