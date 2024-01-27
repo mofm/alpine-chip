@@ -152,7 +152,7 @@ $(ALPINE_CHROOT): vendor/alpine-chroot-install vendor/linux-image-$(KERNEL_VERSI
 		# Add system user
 		adduser -D $(SYSTEM_USER)
 
-		for GRP in adm dialout cdrom audio users video games input gpio spi i2c netdev; do
+		for GRP in adm dialout cdrom audio users video games input gpio spi i2c netdev wheel; do
 		  adduser $(SYSTEM_USER) \$$GRP
 		done
 
